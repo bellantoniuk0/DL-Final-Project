@@ -1,7 +1,5 @@
 #hyperparameters
 
-randomseed = 0
-
 C, H, W = 3,112,112
 input_resize = 171,128
 test_batch_size = 1
