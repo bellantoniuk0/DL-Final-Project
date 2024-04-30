@@ -1,20 +1,14 @@
-import torch
-import torch.nn as nn
-import numpy as np
-import random
-from opts import randomseed
+import tensorflow as tf
 
-torch.manual_seed(randomseed); torch.cuda.manual_seed_all(randomseed); random.seed(randomseed); np.random.seed(randomseed)
+#sixth fully connected layer
 
-
-# sixth fully connected layer
-
-class my_fc6(nn.Module):
+class my_fc6(tf.keras.layers.Layer):
     def __init__(self):
         super(my_fc6, self).__init__()
-        self.fc = nn.Linear(8192,4096)
-        self.relu = nn.ReLU()
+        self.fc = tf.keras.layers.Dense(4096)
+        self.relu = tf.keras.layers.ReLU()
 
-    def forward(self, x):
-        x = self.relu(self.fc(x))
+    def call(self, x):
+        x = self.fc(x)
+        x = self.relu(x)
         return x

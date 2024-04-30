@@ -1,16 +1,10 @@
-import torch
-import torch.nn as nn
-import numpy as np
-import random
-from opts import randomseed
+import tensorflow as tf
 
-torch.manual_seed(randomseed); torch.cuda.manual_seed_all(randomseed); random.seed(randomseed); np.random.seed(randomseed)
-
-class score_regressor(nn.Module):
+class ScoreRegressor(tf.keras.Model):
     def __init__(self):
-        super(score_regressor, self).__init__()
-        self.fc_final_score = nn.Linear(4096,1)
+        super(ScoreRegressor, self).__init__()
+        self.fc_final_score = tf.keras.layers.Dense(1)
 
-    def forward(self, x):
+    def call(self, x):
         final_score = self.fc_final_score(x)
         return final_score
