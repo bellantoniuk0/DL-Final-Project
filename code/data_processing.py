@@ -53,22 +53,25 @@ def pad_frames(frames, C, H):
 
 def preprocess_video(video_file, input_resize=(171, 128), H=112):
     """Process video file into a tensor suitable for model input."""
-    if video_file != "sample":
-        with tempfile.NamedTemporaryFile(delete=False) as tfile:
-            tfile.write(video_file.read())
-            video_path = tfile.name
-    else:
-        video_path = "054.avi"
+    # if video_file != "sample":
+    #     with tempfile.NamedTemporaryFile(delete=False) as tfile:
+    #         tfile.write(video_file.read())
+    #         video_path = tfile.name
+    # else:
+    #     video_path = "054.avi"
 
-    vf = read_video(video_path)
+    vf = read_video(video_file)
     frames = process_frames(vf, input_resize, H)
 
     vf.release()
     cv.destroyAllWindows()
 
     frames = pad_frames(frames, 3, H)
-    frames = tf.transpose(frames, [0, 3, 1, 2])  # Change to (batch, channel, height, width)
+    print('Frames shape before transpose: ', frames.shape)
+    # frames = tf.transpose(frames, [0, 3, 1, 2])  # Change to (batch, channel, height, width)
     frames = tf.cast(frames, tf.float64)  # Convert to double
+    # print(f"Processed video shape: {frames.shape}")
+    #  frames.shape for all = (160, 3, 112, 112)
     return frames
 
 
