@@ -1,8 +1,8 @@
 import os
 from C3D_alt import save_c3d_alt_model_weights
 from C3D_alt import C3D_altered
-from score_regressor import save_score_reg_model_weights
 from fc6 import save_fc6_model_weights
+from score_regressor import save_score_reg_model_weights
 from dive_classifier import save_dive_classifier_model_weights
 from score_regressor import ScoreRegressor
 from dive_classifier import DiveClassifier
