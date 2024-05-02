@@ -6,7 +6,6 @@ from score_regressor import save_score_reg_model_weights
 from dive_classifier import save_dive_classifier_model_weights
 from score_regressor import ScoreRegressor
 from dive_classifier import DiveClassifier
-from data_processing import load_training_data, load_validation_data
 import cv2
 from fc6 import my_fc6
 import numpy as np
@@ -15,7 +14,12 @@ from data_processing import process_frames, preprocess_video, preprocess_frame
 from C3D import C3D, save_c3d_model_weights
 
 # Constants
+<<<<<<< HEAD
 VIDEO_FILE = '../data/diving_samples_len_151_lstm' #all videos
+=======
+VIDEO_TRAIN_FOLDER = '../data/diving_samples_training' #rn just one video but needs to be all videos 
+VIDEO_TEST_FOLDER = '../data/diving_samples_testing'
+>>>>>>> 2f97ae64627251843a58868008933943cf6b13e3
 C3D_SAVE_PATH = 'C3D_model'
 C3D_ALT_PATH = 'C3D_alt_model'
 DIVE_CLASS_PATH = 'dive_class_model'
@@ -86,13 +90,45 @@ def action_scoring(video, c3d_alt_path, fc6_path, score_reg_path):
 
     return pred_scores
 
-def dataloading(vf):
-    pass
+def load_training_data():
+    training_data = []
+
+    # Loop through all the video files in the folder
+    for video_file in os.listdir(VIDEO_TRAIN_FOLDER):
+        # Process the video file
+        video_file_path = os.path.join(VIDEO_TRAIN_FOLDER, video_file)
+        print(f"Processing video file: {video_file_path}")
+
+        with open(video_file_path, 'rb') as video_file:
+            frames = preprocess_video(video_file, input_resize=(171, 128), H=112)
+            training_data.append(frames)
+
+    return training_data
+
+def load_validation_data():
+    test_data = []
+
+    # Loop through all the video files in the folder
+    for video_file in os.listdir(VIDEO_TEST_FOLDER):
+        # Process the video file
+        video_file_path = os.path.join(VIDEO_TEST_FOLDER, video_file)
+        print(f"Processing video file: {video_file_path}")
+
+        with open(video_file_path, 'rb') as video_file:
+            frames = preprocess_video(video_file, input_resize=(171, 128), H=112)
+            test_data.append(frames)
+    return test_data
+
+
+# Want to have a for loop, hand split into train/test
+# split 300 train 70 test, take 300 and iterate over those
+# then check against 70
 
 def main():
-    #this needs to be changed to be all video files 
-    frames = preprocess_video(VIDEO_FILE, input_resize=(171, 128), H=112)
-    video = preprocess_video(VIDEO_FILE, input_resize=(171, 128), H=112)
+    # #this needs to be changed to be all video files 
+    # frames = preprocess_video(VIDEO_FILE, input_resize=(171, 128), H=112)
+    # video = preprocess_video(VIDEO_FILE, input_resize=(171, 128), H=112)
+    load_validation_data()
 
     c3d_model = C3D()
     #TRAIN HERE 
@@ -115,7 +151,7 @@ def main():
 
     # Now use the saved model path for classification
     action_classifier(frames, C3D_SAVE_PATH)
-    #run action scorring 
+    # run action scorring 
     action_scoring(video, C3D_ALT_PATH, FC6_PATH, SCORE_REG_PATH)
 
     #SUM AND PRINT FINAL ACTION SCORE

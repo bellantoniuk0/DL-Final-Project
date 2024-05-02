@@ -53,14 +53,14 @@ def pad_frames(frames, C, H):
 
 def preprocess_video(video_file, input_resize=(171, 128), H=112):
     """Process video file into a tensor suitable for model input."""
-    # if video_file != "sample":
-    #     with tempfile.NamedTemporaryFile(delete=False) as tfile:
-    #         tfile.write(video_file.read())
-    #         video_path = tfile.name
-    # else:
-    #     video_path = "054.avi"
-
-    vf = read_video(video_file)
+    if video_file != "sample":
+        with tempfile.NamedTemporaryFile(delete=False) as tfile:
+            tfile.write(video_file.read())
+            video_path = tfile.name
+    else:
+        video_path = "054.avi"
+    # print('VIDEO FILE AHHHH', video_path)
+    vf = read_video(video_path)
     frames = process_frames(vf, input_resize, H)
 
     vf.release()
@@ -76,24 +76,18 @@ def preprocess_video(video_file, input_resize=(171, 128), H=112):
 
 
 # Saving data to dataframe/csv
-def tensor_to_dataframe(tensor):
-    """Convert a tensor into a pandas DataFrame."""
-    # Flatten the tensor and convert it to a numpy array
-    array = tensor.numpy().flatten()
-    # Create a DataFrame
-    df = pd.DataFrame(array, columns=['ProcessedData'])
-    return df
+# def tensor_to_dataframe(tensor):
+#     """Convert a tensor into a pandas DataFrame."""
+#     # Flatten the tensor and convert it to a numpy array
+#     array = tensor.numpy().flatten() <-- want to reshape not flatten
+#     # Create a DataFrame
+#     df = pd.DataFrame(array, columns=['ProcessedData'])
+#     return df
 
-def save_to_csv(df, filepath):
-    """Save the DataFrame to a CSV file."""
-    df.to_csv(filepath, index=False)
-    print(f"Data saved to {filepath}")
-
-def load_training_data():
-    pass
-
-def load_validation_data():
-    pass
+# def save_to_csv(df, filepath):
+#     """Save the DataFrame to a CSV file."""
+#     df.to_csv(filepath, index=False)
+#     print(f"Data saved to {filepath}")
 
 
 def main(directory_path, output_csv_path):
@@ -110,12 +104,12 @@ def main(directory_path, output_csv_path):
             with open(video_file_path, 'rb') as video_file:
                 processed_tensor = preprocess_video(video_file)
                 # Convert the processed tensor to DataFrame
-                processed_data_df = tensor_to_dataframe(processed_tensor)
+                # processed_data_df = tensor_to_dataframe(processed_tensor)
                 # Append the processed data of the current video to the main DataFrame
-                all_data = pd.concat([all_data, processed_data_df], ignore_index=True)
+                # all_data = pd.concat([all_data, processed_data_df], ignore_index=True)
 
     # After all videos are processed, save the DataFrame to CSV
-    save_to_csv(all_data, output_csv_path)
+    # save_to_csv(all_data, output_csv_path)
     print("All video processing complete and data saved.")
 
 
