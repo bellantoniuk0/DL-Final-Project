@@ -15,7 +15,7 @@ from data_processing import process_frames, preprocess_video, preprocess_frame
 from C3D import C3D, save_c3d_model_weights
 
 # Constants
-VIDEO_FILE = '../data/diving_samples_len_151_lstm/054.avi' #rn just one video but needs to be all videos 
+VIDEO_FILE = '../data/diving_samples_len_151_lstm' #all videos
 C3D_SAVE_PATH = 'C3D_model'
 C3D_ALT_PATH = 'C3D_alt_model'
 DIVE_CLASS_PATH = 'dive_class_model'
