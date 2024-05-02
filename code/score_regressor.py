@@ -12,4 +12,4 @@ class ScoreRegressor(tf.keras.Model):
 def save_score_reg_model_weights(model, save_path):
     """Save the C3D model weights to a file."""
     model.save_weights(save_path, save_format="tf")
-    print(f"Model weights saved to {save_path}")
+    # print(f"Model weights saved to {save_path}")
