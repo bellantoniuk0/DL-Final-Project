@@ -15,7 +15,7 @@ from data_processing import process_frames, preprocess_video, preprocess_frame
 from C3D import C3D, save_c3d_model_weights
 
 # Constants
-VIDEO_FILE = '../data/diving_samples_len_151_lstm/054.avi'
+VIDEO_FILE = '../data/diving_samples_len_151_lstm/054.avi' #rn just one video but needs to be all videos 
 C3D_SAVE_PATH = 'C3D_model'
 C3D_ALT_PATH = 'C3D_alt_model'
 DIVE_CLASS_PATH = 'dive_class_model'
@@ -54,22 +54,57 @@ def action_classifier(frames, c3d_path):
 
     return top_inds[0]
 
-def action_scoring(video):
-    pass
+def action_scoring(video, c3d_alt_path, fc6_path, score_reg_path):
+    # Load the altered C3D backbone
+    model_CNN = C3D_altered()
+    model_CNN.load_weights(c3d_alt_path)  # Load the saved weights
+    
+    # Load the fc6 layer
+    model_my_fc6 = my_fc6()
+    model_my_fc6.load_weights(fc6_path)  # Load the saved weights
+    
+    # Load the score regressor
+    model_score_regressor = ScoreRegressor()
+    model_score_regressor.load_weights(score_reg_path)
+    
+    # Process video frames
+    clip_feats = []
+    print('len of video: ', len(video))
+    print('video shape: ', video.shape)
+    for i in np.arange(0, video.shape[2], 16):
+        print('i: ', i)
+        clip = video[:, :, i:i + 16, :, :]
+        clip_feats_temp = model_CNN(clip)
+        clip_feats.append(clip_feats_temp.numpy())
+    
+    clip_feats_avg = np.mean(clip_feats, axis=0)
+    
+    sample_feats_fc6 = model_my_fc6(clip_feats_avg)
+    temp_final_score = model_score_regressor(sample_feats_fc6) * 17
+    
+    pred_scores = temp_final_score.numpy().flatten().tolist()
+
+    return pred_scores
 
 def dataloading(vf):
     pass
 
 def main():
+    #this needs to be changed to be all video files 
     frames = preprocess_video(VIDEO_FILE, input_resize=(171, 128), H=112)
+    video = preprocess_video(VIDEO_FILE, input_resize=(171, 128), H=112)
 
     c3d_model = C3D()
+    #TRAIN HERE 
     c3d_alt_model = C3D_altered()
+    #TRAIN HERE 
     dive_class_model = DiveClassifier()
+    #TRAIN HERE
     fc6_model = my_fc6()
+    #TRAIN HERE
     score_re_model = ScoreRegressor()
+    #TRAIN HERE 
 
-    # Train your model here if needed
 
     # Save the trained C3D model weights
     save_c3d_model_weights(c3d_model, C3D_SAVE_PATH)
@@ -80,6 +115,10 @@ def main():
 
     # Now use the saved model path for classification
     action_classifier(frames, C3D_SAVE_PATH)
+    #run action scorring 
+    action_scoring(video, C3D_ALT_PATH, FC6_PATH, SCORE_REG_PATH)
+
+    #SUM AND PRINT FINAL ACTION SCORE
 
 if __name__ == '__main__':
     main()

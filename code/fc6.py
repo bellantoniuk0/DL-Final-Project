@@ -1,4 +1,5 @@
 import tensorflow as tf
+import numpy as np
 
 #sixth fully connected layer
 
@@ -14,7 +15,7 @@ class my_fc6(tf.keras.layers.Layer):
         return x
 
 def save_fc6_model_weights(model, save_path):
-    """Save the C3D model weights to a file."""
-    model.save_weights(save_path, save_format="tf")
-    print(f"Model weights saved to {save_path}")
-   
+    """Save the weights of the Dense layer within my_fc6 to a file."""
+    dense_weights = model.fc.get_weights()
+    np.savez(save_path, weights=dense_weights)
+    print(f"Dense layer weights saved to {save_path}")
