@@ -17,7 +17,7 @@ with_caption = False
 
 max_epochs = 100
 
-model_ckpt_interval = 1  #in epochs
+model_ckpt_interval = 1 #in epochs
 
 base_learning_rate = 0.0001
 

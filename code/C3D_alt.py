@@ -56,3 +56,8 @@ class C3D_altered(tf.keras.Model):
         h = self.flatten(h)
 
         return h
+
+def save_c3d_alt_model_weights(model, save_path):
+    """Save the C3D model weights to a file."""
+    model.save_weights(save_path, save_format="tf")
+    print(f"Model weights saved to {save_path}")

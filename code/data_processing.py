@@ -67,7 +67,7 @@ def preprocess_video(video_file, input_resize=(171, 128), H=112):
     cv.destroyAllWindows()
 
     frames = pad_frames(frames, 3, H)
-    print('Frames shape before transpose: ', frames.shape)
+    #print('Frames shape before transpose: ', frames.shape)
     frames = tf.transpose(frames, [0, 3, 1, 2])  # Change to (batch, channel, height, width)
     frames = tf.cast(frames, tf.float64)  # Convert to double
     # print(f"Processed video shape: {frames.shape}")
@@ -88,6 +88,12 @@ def save_to_csv(df, filepath):
     """Save the DataFrame to a CSV file."""
     df.to_csv(filepath, index=False)
     print(f"Data saved to {filepath}")
+
+def load_training_data():
+    pass
+
+def load_validation_data():
+    pass
 
 
 def main(directory_path, output_csv_path):
