@@ -68,7 +68,7 @@ def preprocess_video(video_file, input_resize=(171, 128), H=112):
 
     frames = pad_frames(frames, 3, H)
     print('Frames shape before transpose: ', frames.shape)
-    # frames = tf.transpose(frames, [0, 3, 1, 2])  # Change to (batch, channel, height, width)
+    frames = tf.transpose(frames, [0, 3, 1, 2])  # Change to (batch, channel, height, width)
     frames = tf.cast(frames, tf.float64)  # Convert to double
     # print(f"Processed video shape: {frames.shape}")
     #  frames.shape for all = (160, 3, 112, 112)
