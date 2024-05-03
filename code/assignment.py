@@ -91,74 +91,106 @@ def action_scoring(video, c3d_alt_path, fc6_path, score_reg_path):
 
 def load_training_data():
     training_data = []
+    labels = []
+    label_to_int = {}  # Dictionary to map labels to integers
+    current_label = 0  # Start assigning labels from 0
 
-    # Loop through all the video files in the folder
     for video_file in os.listdir(VIDEO_TRAIN_FOLDER):
-        # Process the video file
         video_file_path = os.path.join(VIDEO_TRAIN_FOLDER, video_file)
         #print(f"Processing video file: {video_file_path}")
 
-        with open(video_file_path, 'rb') as video_file:
-            frames = preprocess_video(video_file, input_resize=(171, 128), H=112)
+        with open(video_file_path, 'rb') as file:
+            frames = preprocess_video(file, input_resize=(171, 128), H=112)
             training_data.append(frames)
 
-    return training_data
+            # If this label has not been seen before, assign it a new integer
+            if video_file not in label_to_int:
+                label_to_int[video_file] = current_label
+                current_label += 1
+
+            labels.append(label_to_int[video_file])
+
+    return np.array(training_data), np.array(labels)
+
 
 def load_validation_data():
-    test_data = []
+    validation_data = []
+    labels = []
+    label_to_int = {}
+    current_label = 0
 
-    # Loop through all the video files in the folder
     for video_file in os.listdir(VIDEO_TEST_FOLDER):
-        # Process the video file
         video_file_path = os.path.join(VIDEO_TEST_FOLDER, video_file)
         #print(f"Processing video file: {video_file_path}")
 
-        with open(video_file_path, 'rb') as video_file:
-            frames = preprocess_video(video_file, input_resize=(171, 128), H=112)
-            test_data.append(frames)
-    return test_data
+        with open(video_file_path, 'rb') as file:
+            frames = preprocess_video(file, input_resize=(171, 128), H=112)
+            validation_data.append(frames)
 
+            if video_file not in label_to_int:
+                label_to_int[video_file] = current_label
+                current_label += 1
 
-def train_models(training_data, validation_data):
-    # Train C3D model
-    c3d_model = C3D()
-    c3d_model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
-    c3d_model.fit(training_data, validation_data=validation_data, epochs=10, batch_size=32)
-    
-    # Train altered C3D model
-    c3d_alt_model = C3D_altered()
-    c3d_alt_model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
-    c3d_alt_model.fit(training_data, validation_data=validation_data, epochs=10, batch_size=32)
-    
-    # Train dive classifier model
-    dive_class_model = DiveClassifier()
-    dive_class_model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
-    dive_class_model.fit(training_data, validation_data=validation_data, epochs=10, batch_size=32)
-    
-    # Train fc6 model
-    fc6_model = my_fc6()
-    fc6_model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
-    fc6_model.fit(training_data, validation_data=validation_data, epochs=10, batch_size=32)
-    
-    # Train score regressor model
-    score_re_model = ScoreRegressor()
-    score_re_model.compile(optimizer='adam', loss='mean_squared_error', metrics=['mae'])
-    score_re_model.fit(training_data, validation_data=validation_data, epochs=10, batch_size=32)
+            labels.append(label_to_int[video_file])
 
-    return c3d_model, c3d_alt_model, dive_class_model, fc6_model, score_re_model
+    return np.array(validation_data), np.array(labels)
 
+loss_function = tf.keras.losses.SparseCategoricalCrossentropy()
+optimizer = tf.keras.optimizers.Adam()
 
-# Want to have a for loop, hand split into train/test
-# split 300 train 70 test, take 300 and iterate over those
-# then check against 70
+def train_model(model, train_data, val_data, epochs):
+    for epoch in range(epochs):
+        print(f"Epoch {epoch+1}/{epochs}")
+        # Training loop - iterate over the batches
+        print(x_batch.shape)
+        print(y_batch.shape)
+        for step, (x_batch, y_batch) in enumerate(train_data):
+            with tf.GradientTape() as tape:
+                predictions = model(x_batch, training=True)
+                loss = loss_function(y_batch, predictions)
+            grads = tape.gradient(loss, model.trainable_weights)
+            optimizer.apply_gradients(zip(grads, model.trainable_weights))
+            print(f"Step {step}, Loss: {loss.numpy()}")
+
+        # Validation loop
+        for x_batch, y_batch in val_data:
+            val_predictions = model(x_batch, training=False)
+            val_loss = loss_function(y_batch, val_predictions)
+        print(f"Validation Loss: {val_loss.numpy()}")
+
 
 def main():
-    #train models 
+    # #this needs to be changed to be all video files 
+    # frames = preprocess_video(VIDEO_FILE, input_resize=(171, 128), H=112)
+    # video = preprocess_video(VIDEO_FILE, input_resize=(171, 128), H=112)
+    training_data, training_labels = load_training_data()
+    validation_data, validation_labels = load_validation_data()
 
-    training_data = load_training_data()
-    validation_data = load_validation_data()
+    # Create TensorFlow datasets
+    train_dataset = tf.data.Dataset.from_tensor_slices((training_data, training_labels)).batch(10)
+    val_dataset = tf.data.Dataset.from_tensor_slices((validation_data, validation_labels)).batch(10)
 
-    c3d_model, c3d_alt_model, dive_class_model, fc6_model, score_re_model = train_models(training_data, validation_data)
+
+    c3d_model = C3D()    
+    # Train the model
+    train_model(c3d_model, train_dataset, val_dataset, epochs=10)
+
+    # Save model weights
+    # c3d_model.save_weights('c3d_model_weights.h5')
+    
+    c3d_alt_model = C3D_altered()
+    #TRAIN HERE
+    train_model(c3d_alt_model, train_dataset, val_dataset, epochs=10)
+    dive_class_model = DiveClassifier()
+    #TRAIN HERE
+    train_model(dive_class_model, train_dataset, val_dataset, epochs=10)
+    fc6_model = my_fc6()
+    #TRAIN HERE
+    train_model(fc6_model, train_dataset, val_dataset, epochs=10)
+    score_re_model = ScoreRegressor()
+    #TRAIN HERE 
+    train_model(score_re_model, train_dataset, val_dataset, epochs=10)
+
 
     # Save the trained C3D model weights
     save_c3d_model_weights(c3d_model, C3D_SAVE_PATH)
@@ -168,10 +200,10 @@ def main():
     save_score_reg_model_weights(score_re_model, SCORE_REG_PATH)
 
 
-    # Now use the saved model path for classification
-    #action_classifier(frames, C3D_SAVE_PATH)
-    # run action scorring 
-    #action_scoring(video, C3D_ALT_PATH, FC6_PATH, SCORE_REG_PATH)
+    # # Now use the saved model path for classification
+    # action_classifier(frames, C3D_SAVE_PATH)
+    # # run action scorring 
+    # action_scoring(video, C3D_ALT_PATH, FC6_PATH, SCORE_REG_PATH)
 
     #SUM AND PRINT FINAL ACTION SCORE
 
