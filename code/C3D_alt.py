@@ -2,7 +2,7 @@ import tensorflow as tf
 
 class C3D_altered(tf.keras.Model):
 
-    def __init__(self, num_classes=299):
+    def __init__(self, num_classes=300):
         super(C3D_altered, self).__init__()
 
         self.conv1 = tf.keras.layers.Conv3D(64, kernel_size=(3, 3, 3), padding='same', activation='relu')

@@ -135,9 +135,9 @@ def load_validation_data():
 
     return np.array(validation_data), np.array(labels)
 
-loss_function = tf.keras.losses.SparseCategoricalCrossentropy()
+loss_function = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
 optimizer = tf.keras.optimizers.Adam()
-
+# maybe softmax layer in fc6, stable softmax
 def train_model(model, train_data, val_data, epochs):
     for epoch in range(epochs):
         print(f"Epoch {epoch+1}/{epochs}")
@@ -145,6 +145,7 @@ def train_model(model, train_data, val_data, epochs):
        
         for step, (x_batch, y_batch) in enumerate(train_data):
             with tf.GradientTape() as tape:
+                x_batch = tf.reduce_mean(x_batch, axis=[1, 2, 3])
                 predictions = model(x_batch, training=True)
                 loss = loss_function(y_batch, predictions)
             grads = tape.gradient(loss, model.trainable_weights)
@@ -153,6 +154,7 @@ def train_model(model, train_data, val_data, epochs):
 
         # Validation loop
         for x_batch, y_batch in val_data:
+            x_batch = tf.reduce_mean(x_batch, axis=[1, 2, 3])
             val_predictions = model(x_batch, training=False)
             val_loss = loss_function(y_batch, val_predictions)
         print(f"Validation Loss: {val_loss.numpy()}")
@@ -162,6 +164,8 @@ def main():
     # #this needs to be changed to be all video files 
     # frames = preprocess_video(VIDEO_FILE, input_resize=(171, 128), H=112)
     # video = preprocess_video(VIDEO_FILE, input_resize=(171, 128), H=112)
+
+    # SAVE THESE TO A CSV FILE TO TAKE LESS TIME TO READ LOL
     training_data, training_labels = load_training_data()
     validation_data, validation_labels = load_validation_data()
     # print('training_data: ', training_data.shape)
@@ -178,26 +182,22 @@ def main():
 
     c3d_model = C3D()    
     # Train the model
-    # train_model(c3d_model, train_dataset, val_dataset, epochs=10)
+    train_model(c3d_model, train_dataset, val_dataset, epochs=10)
 
-    # Save model weights
-    # c3d_model.save_weights('c3d_model_weights.h5')
     
     c3d_alt_model = C3D_altered()
     #TRAIN HERE
-    # print('TRAINING C3D ALT MODEL')
-    # train_model(c3d_alt_model, train_dataset, val_dataset, epochs=10)
+    print('TRAINING C3D ALT MODEL')
+    train_model(c3d_alt_model, train_dataset, val_dataset, epochs=10)
     
-    dive_class_model = DiveClassifier()
-    #TRAIN HERE
-    # print('TRAINING DIVE CLASSIFIER')
-    # train_model(dive_class_model, train_dataset, val_dataset, epochs=10)
-    
+   
     fc6_model = my_fc6()
     #TRAIN HERE
     print('TRAINING FC6')
     train_model(fc6_model, train_dataset, val_dataset, epochs=10)
     
+
+    # This does work! Loss is horrifically high but it works
     score_re_model = ScoreRegressor()
     #TRAIN HERE 
     print('TRAINING SCORE REGRESSOR')
@@ -207,15 +207,14 @@ def main():
     # Save the trained C3D model weights
     save_c3d_model_weights(c3d_model, C3D_SAVE_PATH)
     save_c3d_alt_model_weights(c3d_alt_model, C3D_ALT_PATH)
-    save_dive_classifier_model_weights(dive_class_model, DIVE_CLASS_PATH)
     save_fc6_model_weights(fc6_model, FC6_PATH)
     save_score_reg_model_weights(score_re_model, SCORE_REG_PATH)
 
 
-    # # Now use the saved model path for classification
-    # action_classifier(frames, C3D_SAVE_PATH)
-    # # run action scorring 
-    # action_scoring(video, C3D_ALT_PATH, FC6_PATH, SCORE_REG_PATH)
+    # Now use the saved model path for classification
+    action_classifier(frames, C3D_SAVE_PATH)
+    # run action scorring 
+    action_scoring(video, C3D_ALT_PATH, FC6_PATH, SCORE_REG_PATH)
 
     #SUM AND PRINT FINAL ACTION SCORE
 

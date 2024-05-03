@@ -1,11 +1,12 @@
 import tensorflow as tf
 import numpy as np
-
-class my_fc6(tf.keras.layers.Layer):
-    def __init__(self):
+# shape 300
+class my_fc6(tf.keras.Model):
+    def __init__(self, num_classes=300):
         super(my_fc6, self).__init__()
-        self.fc = tf.keras.layers.Dense(4096)
-        self.relu = tf.keras.layers.ReLU()
+        self.fc = tf.keras.layers.Dense(num_classes) #4096
+        # either add another dense layer or just a softmax
+        #self.relu = tf.keras.layers.ReLU()
 
     def call(self, x):
         x = self.fc(x)

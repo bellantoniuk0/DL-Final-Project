@@ -1,2 +1,2 @@
-model_checkpoint_path: "score_re_model"
-all_model_checkpoint_paths: "score_re_model"
+model_checkpoint_path: "C3D_alt_model"
+all_model_checkpoint_paths: "C3D_alt_model"
