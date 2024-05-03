@@ -142,8 +142,7 @@ def train_model(model, train_data, val_data, epochs):
     for epoch in range(epochs):
         print(f"Epoch {epoch+1}/{epochs}")
         # Training loop - iterate over the batches
-        print(x_batch.shape)
-        print(y_batch.shape)
+       
         for step, (x_batch, y_batch) in enumerate(train_data):
             with tf.GradientTape() as tape:
                 predictions = model(x_batch, training=True)
@@ -165,6 +164,12 @@ def main():
     # video = preprocess_video(VIDEO_FILE, input_resize=(171, 128), H=112)
     training_data, training_labels = load_training_data()
     validation_data, validation_labels = load_validation_data()
+    # print('training_data: ', training_data.shape)
+    # training_data:  (300, 160, 3, 112, 112)
+    # print('training_labels: ', training_labels) 0-299 distinct
+    #print('validation_data: ', validation_data.shape)
+    # validation_data:  (70, 160, 3, 112, 112)
+    # print('validation_labels: ', validation_labels) 0-99 distinct?
 
     # Create TensorFlow datasets
     train_dataset = tf.data.Dataset.from_tensor_slices((training_data, training_labels)).batch(10)
@@ -173,22 +178,29 @@ def main():
 
     c3d_model = C3D()    
     # Train the model
-    train_model(c3d_model, train_dataset, val_dataset, epochs=10)
+    # train_model(c3d_model, train_dataset, val_dataset, epochs=10)
 
     # Save model weights
     # c3d_model.save_weights('c3d_model_weights.h5')
     
     c3d_alt_model = C3D_altered()
     #TRAIN HERE
-    train_model(c3d_alt_model, train_dataset, val_dataset, epochs=10)
+    # print('TRAINING C3D ALT MODEL')
+    # train_model(c3d_alt_model, train_dataset, val_dataset, epochs=10)
+    
     dive_class_model = DiveClassifier()
     #TRAIN HERE
-    train_model(dive_class_model, train_dataset, val_dataset, epochs=10)
+    # print('TRAINING DIVE CLASSIFIER')
+    # train_model(dive_class_model, train_dataset, val_dataset, epochs=10)
+    
     fc6_model = my_fc6()
     #TRAIN HERE
+    print('TRAINING FC6')
     train_model(fc6_model, train_dataset, val_dataset, epochs=10)
+    
     score_re_model = ScoreRegressor()
     #TRAIN HERE 
+    print('TRAINING SCORE REGRESSOR')
     train_model(score_re_model, train_dataset, val_dataset, epochs=10)
 
 

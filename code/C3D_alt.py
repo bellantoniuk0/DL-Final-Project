@@ -2,7 +2,7 @@ import tensorflow as tf
 
 class C3D_altered(tf.keras.Model):
 
-    def __init__(self):
+    def __init__(self, num_classes=299):
         super(C3D_altered, self).__init__()
 
         self.conv1 = tf.keras.layers.Conv3D(64, kernel_size=(3, 3, 3), padding='same', activation='relu')
@@ -24,36 +24,38 @@ class C3D_altered(tf.keras.Model):
         self.pool5 = tf.keras.layers.MaxPool3D(pool_size=(2, 2, 2), strides=(2, 2, 2), padding='valid')
 
         self.flatten = tf.keras.layers.Flatten()
-        self.relu = tf.keras.layers.ReLU()
+        #self.relu = tf.keras.layers.ReLU()
+        self.fc = tf.keras.layers.Dense(num_classes, activation='softmax')
 
     def call(self, x):
         h = self.conv1(x)
-        h = self.relu(h)
+        # h = self.relu(h)
         h = self.pool1(h)
 
         h = self.conv2(h)
-        h = self.relu(h)
+        # h = self.relu(h)
         h = self.pool2(h)
 
         h = self.conv3a(h)
-        h = self.relu(h)
+        # h = self.relu(h)
         h = self.conv3b(h)
-        h = self.relu(h)
+        # h = self.relu(h)
         h = self.pool3(h)
 
         h = self.conv4a(h)
-        h = self.relu(h)
+        # h = self.relu(h)
         h = self.conv4b(h)
-        h = self.relu(h)
+        # h = self.relu(h)
         h = self.pool4(h)
 
         h = self.conv5a(h)
-        h = self.relu(h)
+        # h = self.relu(h)
         h = self.conv5b(h)
-        h = self.relu(h)
+        # h = self.relu(h)
         h = self.pool5(h)
 
         h = self.flatten(h)
+        h = self.fc(h)
 
         return h
 
