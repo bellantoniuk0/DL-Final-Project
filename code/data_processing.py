@@ -98,7 +98,7 @@ def main(directory_path, output_csv_path):
     for filename in os.listdir(directory_path):
         if filename.endswith(".avi"):  # Check if the file is an AVI video
             video_file_path = os.path.join(directory_path, filename)
-            # print(f"Processing video: {video_file_path}")
+            print(f"Processing video: {video_file_path}")
 
             # Open the video file
             with open(video_file_path, 'rb') as video_file:
@@ -110,7 +110,7 @@ def main(directory_path, output_csv_path):
 
     # After all videos are processed, save the DataFrame to CSV
     # save_to_csv(all_data, output_csv_path)
-    # print("All video processing complete and data saved.")
+    print("All video processing complete and data saved.")
 
 
 if __name__ == "__main__":

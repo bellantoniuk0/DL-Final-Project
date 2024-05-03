@@ -4,7 +4,7 @@ import numpy as np
 class my_fc6(tf.keras.Model):
     def __init__(self, num_classes=300):
         super(my_fc6, self).__init__()
-        self.fc = tf.keras.layers.Dense(num_classes) #4096
+        self.fc = tf.keras.layers.Dense(num_classes, activation='softmax') #4096
         # either add another dense layer or just a softmax
         #self.relu = tf.keras.layers.ReLU()
 
