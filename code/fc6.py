@@ -10,7 +10,7 @@ class my_fc6(tf.keras.Model):
 
     def call(self, x):
         x = self.fc(x)
-        x = self.relu(x)
+        # x = self.relu(x)
         return x
 
     def load_weights(self, weights_path):
