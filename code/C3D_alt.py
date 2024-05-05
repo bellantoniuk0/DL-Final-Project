@@ -6,22 +6,22 @@ class C3D_altered(tf.keras.Model):
         super(C3D_altered, self).__init__()
 
         self.conv1 = tf.keras.layers.Conv3D(64, kernel_size=(3, 3, 3), padding='same', activation='relu')
-        self.pool1 = tf.keras.layers.MaxPool3D(pool_size=(1, 2, 2), strides=(1, 2, 2), padding='valid')
+        self.pool1 = tf.keras.layers.MaxPool3D(pool_size=(1, 2, 2), strides=(1, 2, 2), padding='same')
 
         self.conv2 = tf.keras.layers.Conv3D(128, kernel_size=(3, 3, 3), padding='same', activation='relu')
-        self.pool2 = tf.keras.layers.MaxPool3D(pool_size=(2, 2, 2), strides=(2, 2, 2), padding='valid')
+        self.pool2 = tf.keras.layers.MaxPool3D(pool_size=(2, 2, 2), strides=(2, 2, 2), padding='same')
 
         self.conv3a = tf.keras.layers.Conv3D(256, kernel_size=(3, 3, 3), padding='same', activation='relu')
         self.conv3b = tf.keras.layers.Conv3D(256, kernel_size=(3, 3, 3), padding='same', activation='relu')
-        self.pool3 = tf.keras.layers.MaxPool3D(pool_size=(2, 2, 2), strides=(2, 2, 2), padding='valid')
+        self.pool3 = tf.keras.layers.MaxPool3D(pool_size=(2, 2, 2), strides=(2, 2, 2), padding='same')
 
         self.conv4a = tf.keras.layers.Conv3D(512, kernel_size=(3, 3, 3), padding='same', activation='relu')
         self.conv4b = tf.keras.layers.Conv3D(512, kernel_size=(3, 3, 3), padding='same', activation='relu')
-        self.pool4 = tf.keras.layers.MaxPool3D(pool_size=(2, 2, 2), strides=(2, 2, 2), padding='valid')
+        self.pool4 = tf.keras.layers.MaxPool3D(pool_size=(2, 2, 2), strides=(2, 2, 2), padding='same')
 
         self.conv5a = tf.keras.layers.Conv3D(512, kernel_size=(3, 3, 3), padding='same', activation='relu')
         self.conv5b = tf.keras.layers.Conv3D(512, kernel_size=(3, 3, 3), padding='same', activation='relu')
-        self.pool5 = tf.keras.layers.MaxPool3D(pool_size=(2, 2, 2), strides=(2, 2, 2), padding='valid')
+        self.pool5 = tf.keras.layers.MaxPool3D(pool_size=(2, 2, 2), strides=(2, 2, 2), padding='same')
 
         self.flatten = tf.keras.layers.Flatten()
         #self.relu = tf.keras.layers.ReLU()
