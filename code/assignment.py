@@ -28,32 +28,45 @@ SCORE_REG_PATH = 'score_re_model'
 def action_classifier(frames, c3d_path):
     
     model_C3D = C3D()  # Create a new instance of the model
-    model_C3D.load_weights(c3d_path)  # Load the saved weights
-
+    # model_C3D.load_weights(c3d_path)  # Load the saved weights
+    try:
+        model_C3D.load_weights(c3d_path)  # Attempt to load weights
+        print("Weights loaded successfully.")
+    except ValueError as e:
+        print("Error loading weights:", e)
+        print("Review model architecture and checkpoint compatibility.")
     # Prepare input frames
     frames2keep = np.linspace(0, frames.shape[0] - 1, 16, dtype=int)
 
-    X = np.zeros((1, 16, 112, 112, 3))
+    X = np.zeros(shape=(1, 32, 3, 112, 112), dtype=np.float64) #1, 16, 3, 112, 112
     ctr = 0
     
-    for i in frames2keep:
-      temp_slice = frames[i, :, :, :]
-      temp_slice = np.transpose(temp_slice, (1, 2, 0))
-      X[0, ctr, :, :, :] = temp_slice
-      ctr += 1
+    # for i in frames2keep:
+    #     temp_slice = frames[i, :, :, :]
+    # #   temp_slice = np.transpose(temp_slice, (1, 2, 0))
+    #     # if temp_slice.shape != (112, 112, 3):
+    #     #     temp_slice = np.transpose(temp_slice, (1, 2, 0))
+    #     if temp_slice.shape != (3, 112, 112):
+    #         print(temp_slice.shape)
+    #         temp_slice = cv2.resize(temp_slice, (112, 112))
+    #         if len(temp_slice.shape) < 3 or temp_slice.shape[2] != 3:  # Check if the frames have three channels
+    #             print("Frame at index", i, "does not have three channels.")
+    #     X[0, ctr, :, :, :] = temp_slice
+    #     ctr += 1
 
-    # Preprocess input
-    X = X * 255
-    X = np.flip(X, axis=4)
+    # # Preprocess input
+    # X = X * 255
+    # X = np.flip(X, axis=4)
 
+    print("Shape of input to model:", X.shape)
+    # Shape of input to model: (1, 16, 3, 112, 112)
     # Perform prediction
     prediction = model_C3D.predict(X)
 
     # Print top predictions
     top_inds = np.argsort(prediction[0])[::-1][:5] 
-    print('want to have top 5 here') 
-    # print('\nTop 5:')
-    # print('Top inds:', top_inds)
+    print('\nTop 5:')
+    print('Top inds:', top_inds)
 
     return top_inds[0]
 
@@ -72,17 +85,17 @@ def action_scoring(video, c3d_alt_path, fc6_path, score_reg_path):
     
     # Process video frames
     clip_feats = []
-    print('want to have len and shape of vid here')
-    # print('len of video: ', len(video))
-    # print('video shape: ', video.shape)
+    print('len of video: ', len(video))
+    print('video shape: ', video.shape)
     for i in np.arange(0, video.shape[2], 16):
         print('i: ', i)
-        clip = video[:, :, i:i + 16, :, :]
-        clip_feats_temp = model_CNN(clip)
+        clip = video[i:i + 16, :, :, :]
+        clip_feats_temp = model_CNN(np.expand_dims(clip, axis=0))
         clip_feats.append(clip_feats_temp.numpy())
     
     clip_feats_avg = np.mean(clip_feats, axis=0)
-    
+    print("clip_feats_avg shape:", clip_feats_avg.shape)
+
     sample_feats_fc6 = model_my_fc6(clip_feats_avg)
     temp_final_score = model_score_regressor(sample_feats_fc6) * 17
     
@@ -132,7 +145,10 @@ def load_validation_data():
         #print(f"Processing video file: {video_file_path}")
 
         with open(video_file_path, 'rb') as file:
-            frames = preprocess_video(file, input_resize=(171, 128), H=112)
+            frames = preprocess_video(file, input_resize=(171, 128), H=112) # 160, 3, 112, 112
+            print('frames shape: ', frames.shape)
+            print(frames.dtype)
+            raise ValueError('stop')
             validation_data.append(frames)
 
             if video_file not in label_to_int:
@@ -177,15 +193,39 @@ def train_model(model, train_data, val_data, epochs, model_name):
 
 
 def main():
-    # #this needs to be changed to be all video files 
-    # frames = preprocess_video(VIDEO_FILE, input_resize=(171, 128), H=112)
-    # video = preprocess_video(VIDEO_FILE, input_resize=(171, 128), H=112)
 
-    # SAVE THESE TO A CSV FILE TO TAKE LESS TIME TO READ LOL
-    print('LOADING TRAINING DATA')
-    training_data, training_labels = load_training_data()
-    print('LOADING VALIDATION DATA')
-    validation_data, validation_labels = load_validation_data()
+    # SAVE THESE TO A NPZ FILE TO TAKE LESS TIME TO READ LOL
+    training_data = np.load('../data/training_data.npz')
+
+    #loop through all labels:
+    for labels in training_data:
+        if labels == 'data':
+            train_array = training_data[labels]
+        if labels == 'labels':
+            train_labels = training_data[labels]
+        # print(f"Array: '{labels}' : ")
+        # print(train_array)
+    
+    training_data.close()
+
+    validation_data = np.load('../data/validation_data.npz')
+
+    #loop through all labels:
+    for labels in validation_data:
+        if labels == 'data':
+            valid_array = validation_data[labels]
+        if labels == 'labels':
+            valid_labels = validation_data[labels]
+        # print(f"Array: '{labels}' : ")
+        # print(valid_array)
+    
+    validation_data.close()
+
+    # print('LOADING TRAINING DATA')
+    # training_data, training_labels = load_training_data()
+    # print(training_data[0])
+    # print('LOADING VALIDATION DATA')
+    # validation_data, validation_labels = load_validation_data()
     # print('training_data: ', training_data.shape)
     # training_data:  (300, 160, 3, 112, 112)
     # print('training_labels: ', training_labels) 0-299 distinct
@@ -194,19 +234,19 @@ def main():
     # print('validation_labels: ', validation_labels) 0-99 distinct?
 
     # Create TensorFlow datasets
-    train_dataset = tf.data.Dataset.from_tensor_slices((training_data, training_labels)).batch(10)
-    val_dataset = tf.data.Dataset.from_tensor_slices((validation_data, validation_labels)).batch(10)
+    train_dataset = tf.data.Dataset.from_tensor_slices((train_array, train_labels)).batch(10)
+    val_dataset = tf.data.Dataset.from_tensor_slices((valid_array, valid_labels)).batch(10)
 
 
     c3d_model = C3D()    
     # Train the model
-    # train_model(c3d_model, train_dataset, val_dataset, epochs=10, model_name='c3d')
-    # save_c3d_model_weights(c3d_model, C3D_SAVE_PATH)
+    train_model(c3d_model, train_dataset, val_dataset, epochs=0, model_name='c3d')
+    save_c3d_model_weights(c3d_model, C3D_SAVE_PATH)
     
     c3d_alt_model = C3D_altered()
     #TRAIN HERE
     # print('TRAINING C3D ALT MODEL')
-    # train_model(c3d_alt_model, train_dataset, val_dataset, epochs=10, model_name='c3d_alt')
+    # train_model(c3d_alt_model, train_dataset, val_dataset, epochs=0, model_name='c3d_alt')
     # save_c3d_alt_model_weights(c3d_alt_model, C3D_ALT_PATH)
     
    
@@ -221,9 +261,9 @@ def main():
     # This does work! Loss is horrifically high but it works
     score_re_model = ScoreRegressor()
     #TRAIN HERE 
-    print('TRAINING SCORE REGRESSOR')
-    train_model(score_re_model, train_dataset, val_dataset, epochs=10, model_name='score_regressor')
-    save_score_reg_model_weights(score_re_model, SCORE_REG_PATH)
+    # print('TRAINING SCORE REGRESSOR')
+    # train_model(score_re_model, train_dataset, val_dataset, epochs=10, model_name='score_regressor')
+    # save_score_reg_model_weights(score_re_model, SCORE_REG_PATH)
 
 
     # Now use the saved model path for classification
@@ -231,11 +271,30 @@ def main():
     # run action scorring 
     #action_scoring(video, C3D_ALT_PATH, FC6_PATH, SCORE_REG_PATH)
 
+    all_classifications = []
+    all_scores = []
+
+    # Loop through all videos in the validation dataset
+    for index, frames in enumerate(train_array):
+        classified_action = action_classifier(frames, C3D_SAVE_PATH)
+        all_classifications.append(classified_action)
+        print(f"Classified Action for video {index + 1}: ", classified_action)
+
+        scores = action_scoring(frames, C3D_ALT_PATH, FC6_PATH, SCORE_REG_PATH)
+        all_scores.append(scores)
+        print(f"Action Scores for video {index + 1}: ", scores)
+
+    save_results(all_classifications, all_scores)
+
+def save_results(classifications, scores):
+    results_df = pd.DataFrame({
+        'Classifications': classifications,
+        'Scores': scores
+    })
+    results_df.to_csv('video_analysis_results.csv', index=False)
+    print('Results saved to video_analysis_results.csv')
+
     #SUM AND PRINT FINAL ACTION SCORE
 
 if __name__ == '__main__':
     main()
-
-# TODO: want to be able to save data to a file, one of frames, one of video
-# folder of full length videos
-# folder of frames that correspond to each full length video
