@@ -13,6 +13,7 @@ import tensorflow as tf
 from data_processing import process_frames, preprocess_video, preprocess_frame
 from C3D import C3D, save_c3d_model_weights
 import matplotlib.pyplot as plt
+import pandas as pd
 
 # Constants
 VIDEO_TRAIN_FOLDER = '../data/diving_samples_training' #rn just one video but needs to be all videos 
@@ -109,9 +110,16 @@ def load_training_data():
                 current_label += 1
 
             labels.append(label_to_int[video_file])
+    
+    # training_data = np.array(training_data)
+    # labels = np.array(labels)
+    # save_numpy_data(training_data, labels, "training_data.npz")
+    # print("DATA WRITTEN TO VALIDATION_LABELS.CSV")
 
     return np.array(training_data), np.array(labels)
 
+def save_numpy_data(data, labels, file_path):
+    np.savez(file_path, data=data, labels=labels)
 
 def load_validation_data():
     validation_data = []
@@ -133,10 +141,14 @@ def load_validation_data():
 
             labels.append(label_to_int[video_file])
 
+    # validation_data = np.array(validation_data)
+    # labels = np.array(labels)
+    # save_numpy_data(validation_data, labels, "validation_data.npz")
+    # print("DATA WRITTEN TO VALIDATION_LABELS.NPZ")
     return np.array(validation_data), np.array(labels)
 
 loss_function = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
-optimizer = tf.keras.optimizers.Adam()
+optimizer = tf.keras.optimizers.legacy.Adam()
 # maybe softmax layer in fc6, stable softmax
 def train_model(model, train_data, val_data, epochs, model_name):
     for epoch in range(epochs):
@@ -170,7 +182,9 @@ def main():
     # video = preprocess_video(VIDEO_FILE, input_resize=(171, 128), H=112)
 
     # SAVE THESE TO A CSV FILE TO TAKE LESS TIME TO READ LOL
+    print('LOADING TRAINING DATA')
     training_data, training_labels = load_training_data()
+    print('LOADING VALIDATION DATA')
     validation_data, validation_labels = load_validation_data()
     # print('training_data: ', training_data.shape)
     # training_data:  (300, 160, 3, 112, 112)
@@ -186,22 +200,22 @@ def main():
 
     c3d_model = C3D()    
     # Train the model
-    train_model(c3d_model, train_dataset, val_dataset, epochs=10, model_name='c3d')
-    save_c3d_model_weights(c3d_model, C3D_SAVE_PATH)
+    # train_model(c3d_model, train_dataset, val_dataset, epochs=10, model_name='c3d')
+    # save_c3d_model_weights(c3d_model, C3D_SAVE_PATH)
     
     c3d_alt_model = C3D_altered()
     #TRAIN HERE
-    print('TRAINING C3D ALT MODEL')
-    train_model(c3d_alt_model, train_dataset, val_dataset, epochs=10, model_name='c3d_alt')
-    save_c3d_alt_model_weights(c3d_alt_model, C3D_ALT_PATH)
+    # print('TRAINING C3D ALT MODEL')
+    # train_model(c3d_alt_model, train_dataset, val_dataset, epochs=10, model_name='c3d_alt')
+    # save_c3d_alt_model_weights(c3d_alt_model, C3D_ALT_PATH)
     
    
     fc6_model = my_fc6()
     #TRAIN HERE
-    print('TRAINING FC6')
-    loss_function_fc6 = tf.keras.losses.SparseCategoricalCrossentropy() # from_logits=True
-    train_model(fc6_model, train_dataset, val_dataset, epochs=10, model_name='fc6')
-    save_fc6_model_weights(fc6_model, FC6_PATH)
+    # print('TRAINING FC6')
+    # loss_function_fc6 = tf.keras.losses.SparseCategoricalCrossentropy() # from_logits=True
+    # train_model(fc6_model, train_dataset, val_dataset, epochs=10, model_name='fc6')
+    # save_fc6_model_weights(fc6_model, FC6_PATH)
     
 
     # This does work! Loss is horrifically high but it works
