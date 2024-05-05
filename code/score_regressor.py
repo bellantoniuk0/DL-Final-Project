@@ -1,9 +1,9 @@
 import tensorflow as tf
 
 class ScoreRegressor(tf.keras.Model):
-    def __init__(self):
+    def __init__(self, num_classes=300):
         super(ScoreRegressor, self).__init__()
-        self.fc_final_score = tf.keras.layers.Dense(1)
+        self.fc_final_score = tf.keras.layers.Dense(num_classes)
 
     def call(self, x):
         final_score = self.fc_final_score(x)
